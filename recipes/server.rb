@@ -23,6 +23,12 @@ when "ubuntu"
     package "db4.8-util" do
       action :upgrade
     end
+  
+  directory "/var/cache/local/preseeding" do
+    mode 0755
+    recursive true
+  end
+  
   cookbook_file "/var/cache/local/preseeding/slapd.seed" do
     source "slapd.seed"
     mode 00600
