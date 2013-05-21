@@ -17,8 +17,15 @@
 # limitations under the License.
 #
 
-package "ldap-utils" do
-  action :upgrade
+case node['platform']
+when "ubuntu"
+  package "ldap-utils" do
+    action :upgrade
+  end
+when "centos"
+  package "openldap-clients" do
+    action :upgrade
+  end
 end
 
 directory node['openldap']['ssl_dir'] do
