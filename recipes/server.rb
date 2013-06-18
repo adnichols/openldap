@@ -39,13 +39,16 @@ when "ubuntu"
     response_file "slapd.seed"
     action :upgrade
   end
-else
-  package "db4.2-util" do
+
+when "centos"
+  package "db4-utils" do
     action :upgrade
   end
-  package "slapd" do
+  package "openldap-servers" do
     action :upgrade
   end
+
+
 end
 
 cookbook_file "#{node['openldap']['ssl_dir']}/#{node['openldap']['server']}.pem" do
@@ -59,7 +62,9 @@ service "slapd" do
   action [:enable, :start]
 end
 
-if (node['platform'] == "ubuntu")
+
+case node['platform']
+when "debian","ubuntu"
   template "/etc/default/slapd" do
     source "default_slapd.erb"
     owner "root"
@@ -89,22 +94,50 @@ if (node['platform'] == "ubuntu")
     notifies :stop, "service[slapd]", :immediately
     notifies :run, "execute[slapd-config-convert]"
   end
-else
-  case node['platform']
-  when "debian","ubuntu"
-    template "/etc/default/slapd" do
-      source "default_slapd.erb"
-      owner "root"
-      group "root"
-      mode 00644
-    end
+
+
+when "centos"
+  template "/etc/default/slapd" do
+    source "default_slapd.erb"
+    owner "root"
+    group "root"
+    mode 00644
   end
+
+  #Delete the old slapd.d directory because of duplication issues
+  directory "#{node['openldap']['dir']}/slapd.d" do
+    recursive true
+    action :delete
+  end
+
+  directory "#{node['openldap']['dir']}/slapd.d" do
+    recursive true
+    owner "ldap"
+    group "ldap"
+    action :create
+  end
+
+  execute "slapd-config-convert" do
+    command "slaptest -f #{node['openldap']['dir']}/slapd.conf -F #{node['openldap']['dir']}/slapd.d/"
+    user "ldap"
+    action :nothing
+    notifies :start, "service[slapd]", :immediately
+  end
+
+  template "#{node['openldap']['dir']}/ldap.conf" do
+    source "ldap-ldap.conf.erb"
+    mode 00640
+    owner "ldap"
+    group "ldap"
+  end  
 
   template "#{node['openldap']['dir']}/slapd.conf" do
     source "slapd.conf.erb"
     mode 00640
-    owner "openldap"
-    group "openldap"
-    notifies :restart, "service[slapd]"
+    owner "ldap"
+    group "ldap"
+    notifies :stop, "service[slapd]", :immediately
+    notifies :run, "execute[slapd-config-convert]"
   end
+
 end

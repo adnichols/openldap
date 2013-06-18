@@ -24,9 +24,10 @@ include         <%= node['openldap']['dir'] %>/schema/java.schema
 include         <%= node['openldap']['dir'] %>/schema/misc.schema
 include         <%= node['openldap']['dir'] %>/schema/openldap.schema
 include         <%= node['openldap']['dir'] %>/schema/ppolicy.schema
+<% unless node['platform'] == "centos" -%>
 include         <%= node['openldap']['dir'] %>/schema/ldapns.schema
 include         <%= node['openldap']['dir'] %>/schema/pmi.schema
-
+<% end -%>
 
 # Where the pid file is put. The init.d script
 # will not stop the server if you change this.
@@ -38,14 +39,22 @@ argsfile        <%= node['openldap']['run_dir'] %>/slapd.args
 # Read slapd.conf(5) for possible values
 loglevel        0
 
-<% unless node['platform'] == "centos" -%>
+<% case node['platform'] %>
+<% when 'centos' %>
+<% if node['openldap']['slapd_type'] == "master" -%>
+moduleload  syncprov.la
+<% end -%>
+<% when 'debian','ubuntu' %>
 # Where the dynamically loaded modules are stored
-modulepath	<%= node['openldap']['module_dir'] %>
-moduleload	back_hdb
+modulepath  <%= node['openldap']['module_dir'] %>
+moduleload  back_hdb
 <% if node['openldap']['slapd_type'] == "master" -%>
 moduleload  syncprov
 <% end -%>
 <% end -%>
+
+
+
 
 # The maximum number of entries that is returned for a search operation
 sizelimit 500
@@ -58,7 +67,7 @@ tool-threads 1
 # Specific Backend Directives for hdb:
 # Backend specific directives apply to this backend until another
 # 'backend' directive occurs
-backend		hdb
+backend     hdb
 
 #####
 # Database
@@ -66,7 +75,7 @@ backend		hdb
 database        hdb
 suffix          "<%= node['openldap']['basedn'] %>"
 rootdn          "cn=admin,<%= node['openldap']['basedn'] %>"
-rootpw		      <%= node['openldap']['rootpw'] %>
+rootpw            <%= node['openldap']['rootpw'] %>
 directory       "/var/lib/ldap"
 lastmod         on
 
