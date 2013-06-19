@@ -1,0 +1,32 @@
+# Create top-level object in domain
+dn: <%= node['openldap']['basedn'] %>
+objectClass: top
+objectClass: dcObject
+objectclass: organization
+o: Dev Organization
+dc: rcb 
+description: LDAP Example
+
+dn: ou=Users,<%= node['openldap']['basedn'] %>
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=Groups,<%= node['openldap']['basedn'] %>
+objectClass: organizationalUnit
+ou: groups
+
+dn: ou=Roles,<%= node['openldap']['basedn'] %>
+objectClass: organizationalUnit
+ou: roles
+
+
+dn: ou=Domains,<%= node['openldap']['basedn'] %>
+objectClass: organizationalUnit
+ou: Domains
+
+dn: cn=default,ou=Domains,<%= node['openldap']['basedn'] %>
+objectClass: groupOfNames
+description: default domain for keystone
+ou: Default
+member: cn=dumb,dc=nonexistent
+cn: default

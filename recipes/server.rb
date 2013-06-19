@@ -20,15 +20,14 @@ include_recipe "openldap::client"
 
 case node['platform']
 when "ubuntu"
-    package "db4.8-util" do
-      action :upgrade
-    end
-  
+
+  package "db4.8-util" do
+    action :upgrade
+  end
   directory "/var/cache/local/preseeding" do
     mode 0755
     recursive true
   end
-  
   cookbook_file "/var/cache/local/preseeding/slapd.seed" do
     source "slapd.seed"
     mode 00600
@@ -41,15 +40,16 @@ when "ubuntu"
   end
 
 when "centos"
+
   package "db4-utils" do
     action :upgrade
   end
   package "openldap-servers" do
     action :upgrade
   end
-
-
 end
+
+
 
 cookbook_file "#{node['openldap']['ssl_dir']}/#{node['openldap']['server']}.pem" do
   source "ssl/#{node['openldap']['server']}.pem"
@@ -61,6 +61,7 @@ end
 service "slapd" do
   action [:enable, :start]
 end
+
 
 
 case node['platform']
@@ -104,6 +105,7 @@ when "centos"
     mode 00644
   end
 
+  ################################################################
   #BUG IN YUM REPO: already has core in cn=schema,
   # so need to wipe slapd.d and start over only on first run
   #
@@ -121,7 +123,7 @@ when "centos"
     end
     action :nothing
   end
-
+  ##############################################################
 
   directory "#{node['openldap']['dir']}/slapd.d" do
     recursive true
@@ -154,3 +156,11 @@ when "centos"
   end
 
 end
+
+
+template "#{node['openldap']['dir']}/base.ldif" do
+    source "base.ldif.erb"
+    mode 00640
+    owner "ldap"
+    group "ldap"
+end  
