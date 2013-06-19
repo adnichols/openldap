@@ -104,11 +104,24 @@ when "centos"
     mode 00644
   end
 
+  #BUG IN YUM REPO: already has core in cn=schema,
+  # so need to wipe slapd.d and start over only on first run
+  #
   #Delete the old slapd.d directory because of duplication issues
   directory "#{node['openldap']['dir']}/slapd.d" do
     recursive true
     action :delete
+    notifies :create, "ruby_block[first_run_wipe_slapd]", :immediately
+    not_if { node.attribute?("first_run_wipe_slapd_complete") }
   end
+  ruby_block "first_run_wipe_slapd" do
+    block do
+      node.set['first_run_wipe_slapd_complete'] = true
+      node.save
+    end
+    action :nothing
+  end
+
 
   directory "#{node['openldap']['dir']}/slapd.d" do
     recursive true
