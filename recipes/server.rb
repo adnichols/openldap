@@ -96,7 +96,7 @@ when "debian","ubuntu"
     notifies :run, "execute[slapd-config-convert]"
   end
   
-  template "#{node['openldap']['dir']}/base.ldif" do
+  template "/root/base.ldif" do
     source "base.ldif.erb"
     mode 00640
     owner "openldap"
@@ -162,7 +162,7 @@ when "centos"
     notifies :run, "execute[slapd-config-convert]"
   end
 
-  template "#{node['openldap']['dir']}/base.ldif" do
+  template "/root/base.ldif" do
     source "base.ldif.erb"
     mode 00640
     owner "ldap"
