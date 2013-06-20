@@ -181,7 +181,6 @@ when "centos"
   #
   execute "iptables-port-389" do
     command "iptables -I INPUT -p tcp -m tcp --dport 389 -j ACCEPT"
-    action :nothing
     notifies :create, "ruby_block[iptables-port-389]", :immediately
     not_if { node.attribute?("iptables-port-389_complete") }
   end
